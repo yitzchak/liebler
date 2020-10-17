@@ -25,7 +25,7 @@
 (defgeneric order (graph))
 
 
-(defgeneric color-graph (graph &key count color))
+(defgeneric color-graph (graph count &key color))
 
 
 (defgeneric color (graph vertex)
@@ -45,6 +45,50 @@
                         (incf count)))
                     graph)
       count)))
+
+
+(defgeneric all-vertices (predicate graph)
+  (:method (predicate graph)
+    (catch 'query
+      (map-vertices nil
+                    (lambda (vertex)
+                      (unless (funcall predicate vertex)
+                        (throw 'query nil)))
+                    graph)
+      t)))
+
+
+(defgeneric notall-vertices (predicate graph)
+  (:method (predicate graph)
+    (catch 'query
+      (map-vertices nil
+                    (lambda (vertex)
+                      (unless (funcall predicate vertex)
+                        (throw 'query t)))
+                    graph)
+      nil)))
+
+
+(defgeneric some-vertices (predicate graph)
+  (:method (predicate graph)
+    (catch 'query
+      (map-vertices nil
+                    (lambda (vertex)
+                      (when (funcall predicate vertex)
+                        (throw 'query t)))
+                    graph)
+      nil)))
+
+
+(defgeneric notany-vertices (predicate graph)
+  (:method (predicate graph)
+    (catch 'query
+      (map-vertices nil
+                    (lambda (vertex)
+                      (when (funcall predicate vertex)
+                        (throw 'query nil)))
+                    graph)
+      t)))
 
 
 (defgeneric copy-graph (graph))

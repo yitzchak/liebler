@@ -3,9 +3,9 @@
 
 ; color 0 is not in clique, 1 is in R, 2 is in P, 3 is in X
 (defun bron-kerbosch-1 (graph)
-  (if (zerop (count-vertices (lambda (vertex)
-                               (> (color graph vertex) 1))
-                             graph))
+  (if (notany-vertices (lambda (vertex)
+                         (> (color graph vertex) 1))
+                       graph)
     (list graph)
     (apply #'nconc
            (map-vertices
@@ -14,8 +14,7 @@
                (when (= (color graph vertex) 2)
                  (prog1
                    (bron-kerbosch-1
-                     (color-graph graph
-                                  :count 4
+                     (color-graph graph 4
                                   :color (lambda (v)
                                            (cond
                                              ((= v vertex)
@@ -30,4 +29,4 @@
 
 
 (defun bron-kerbosch (graph)
-  (bron-kerbosch-1 (color-graph graph :count 4 :color 2)))
+  (bron-kerbosch-1 (color-graph graph 4 :color 2)))

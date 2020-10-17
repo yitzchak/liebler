@@ -59,7 +59,7 @@
      :initarg :vertex-colors)))
 
 
-(defmethod color-graph ((graph adjacency-matrix) &key count color)
+(defmethod color-graph ((graph adjacency-matrix) count &key color)
   (make-instance 'colored-adjacency-matrix
                  :matrix (matrix graph)
                  :order (order graph)
