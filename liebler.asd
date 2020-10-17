@@ -5,7 +5,10 @@
   :depends-on ()
   :components ((:module "lisp"
                 :components
-                ((:file "package"))))
+                ((:file "package")
+                 (:file "graph")
+                 (:file "adjacency-matrix")
+                 (:file "bron-kerbosch"))))
   :description "")
 
 

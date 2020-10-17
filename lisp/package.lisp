@@ -1,3 +1,12 @@
-(defpackage "liebler"
+(defpackage #:liebler
   (:use :common-lisp)
-  (:export))
+  (:export
+    #:bron-kerbosch
+    #:color
+    #:count-vertices
+    #:directedp
+    #:make-adjacency-matrix
+    #:map-vertices
+    #:neighborp
+    #:order))
+
