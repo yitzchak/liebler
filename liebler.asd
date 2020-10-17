@@ -8,6 +8,7 @@
                 ((:file "package")
                  (:file "graph")
                  (:file "adjacency-matrix")
+                 (:file "colored-graph")
                  (:file "bron-kerbosch"))))
   :description "")
 

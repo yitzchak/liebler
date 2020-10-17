@@ -65,8 +65,7 @@
                     (lambda (vertex)
                       (unless (funcall predicate vertex)
                         (throw 'query t)))
-                    graph)
-      nil)))
+                    graph))))
 
 
 (defgeneric some-vertices (predicate graph)
@@ -76,8 +75,7 @@
                     (lambda (vertex)
                       (when (funcall predicate vertex)
                         (throw 'query t)))
-                    graph)
-      nil)))
+                    graph))))
 
 
 (defgeneric notany-vertices (predicate graph)
