@@ -3,36 +3,31 @@
 
 ; color 0 is not in clique, 1 is in R, 2 is in P, 3 is in X
 (defun bron-kerbosch-1 (graph)
-  (if (zerop (count-vertices (lambda (vertex color)
-                               (declare (ignore vertex))
-                               (> color 1))
+  (if (zerop (count-vertices (lambda (vertex)
+                               (> (color graph vertex) 1))
                              graph))
     (list graph)
     (apply #'nconc
            (map-vertices
              'list
-             (lambda (vertex color)
-               (when (= color 2)
+             (lambda (vertex)
+               (when (= (color graph vertex) 2)
                  (prog1
                    (bron-kerbosch-1
                      (color-graph graph
-                                  :colors 4
-                                  :color-function (lambda (v c)
-                                                    (cond
-                                                      ((= v vertex)
-                                                        1)
-                                                      ((and (> c 1)
-                                                            (not (neighborp graph vertex v)))
-                                                        0)
-                                                      (t
-                                                        c)))))
+                                  :count 4
+                                  :color (lambda (v)
+                                           (cond
+                                             ((= v vertex)
+                                               1)
+                                             ((and (> (color graph v) 1)
+                                                   (not (neighborp graph vertex v)))
+                                               0)
+                                             (t
+                                               (color graph v))))))
                    (setf (color graph vertex) 3))))
              graph))))
 
 
 (defun bron-kerbosch (graph)
-  (bron-kerbosch-1 (color-graph graph
-                                :colors 4
-                                :color-function (lambda (vertex color)
-                                                  (declare (ignore vertex color))
-                                                  2))))
+  (bron-kerbosch-1 (color-graph graph :count 4 :color 2)))

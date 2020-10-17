@@ -4,7 +4,7 @@
 (defgeneric directedp (graph))
 
 
-(defgeneric map-vertices (result-type function graph &optional color-function))
+(defgeneric map-vertices (result-type function graph))
 
 
 (defgeneric map-edges (result-type function graph))
@@ -25,26 +25,25 @@
 (defgeneric order (graph))
 
 
-(defgeneric color-graph (graph &key colors color-function))
+(defgeneric color-graph (graph &key count color))
 
 
 (defgeneric color (graph vertex)
   (:method (graph vertex)
-    (declare (ignore graph vertex))
-    0))
+    (declare (ignore graph vertex))))
 
 
 (defgeneric (setf color) (new-value graph vertex))
 
 
-(defgeneric count-vertices (predicate graph &optional color-function)
-  (:method (predicate graph &optional color-function)
+(defgeneric count-vertices (predicate graph)
+  (:method (predicate graph)
     (let ((count 0))
       (map-vertices nil
-                    (lambda (vertex color)
-                      (when (funcall predicate vertex color)
+                    (lambda (vertex)
+                      (when (funcall predicate vertex)
                         (incf count)))
-                    graph color-function)
+                    graph)
       count)))
 
 

@@ -35,30 +35,21 @@
     new-value))
 
 
-(defmethod map-vertices (result-type function (graph adjacency-matrix) &optional color-function)
+(defmethod map-vertices (result-type function (graph adjacency-matrix))
   (cond
     ((null result-type)
       (dotimes (vertex (order graph))
-        (funcall function vertex
-                 (if color-function
-                   (funcall color-function vertex 0)
-                   0))))
+        (funcall function vertex)))
     ((subtypep result-type 'list)
       (loop :for vertex :below (order graph)
-            :collect (funcall function vertex
-                              (if color-function
-                                (funcall color-function vertex 0)
-                                0))))
+            :collect (funcall function vertex)))
     ((subtypep result-type 'vector)
       (let ((result (make-array (order graph) :element-type (if (and (listp result-type)
-                                                                       (not (eql '* (second result-type))))
+                                                                     (not (eql '* (second result-type))))
                                                               (second result-type)
                                                               t))))
         (dotimes (vertex (order graph) result)
-          (setf (aref result vertex) (funcall function vertex
-                                              (if color-function
-                                                (funcall color-function vertex 0)
-                                                0))))))
+          (setf (aref result vertex) (funcall function vertex)))))
     (t)))
 
 
@@ -68,29 +59,17 @@
      :initarg :vertex-colors)))
 
 
-(defmethod color-graph ((graph adjacency-matrix) &key colors color-function)
+(defmethod color-graph ((graph adjacency-matrix) &key count color)
   (make-instance 'colored-adjacency-matrix
                  :matrix (matrix graph)
                  :order (order graph)
-                 :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- colors)))
-                                                      (lambda (vertex color)
-                                                        (declare (ignore vertex))
-                                                        color)
-                                                      graph
-                                                      color-function)))
-
-
-(defmethod map-vertices (result-type function (graph colored-adjacency-matrix) &optional color-function)
-  (call-next-method result-type function graph
-                    (if color-function
-                      (lambda (vertex color)
-                        (declare (ignore color))
-                        (funcall color-function vertex
-                                 (aref (vertex-colors graph) vertex)))
-                      (lambda (vertex color)
-                        (declare (ignore color))
-                        (aref (vertex-colors graph) vertex)))))
-
+                 :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
+                                                      (if (functionp color)
+                                                        color
+                                                        (lambda (vertex)
+                                                          (declare (ignore vertex))
+                                                          color))
+                                                      graph)))
 
 (defmethod color ((graph colored-adjacency-matrix) vertex)
   (aref (vertex-colors graph) vertex))
@@ -100,4 +79,4 @@
   (setf (aref (vertex-colors graph) vertex) new-value))
 
 
-        
+

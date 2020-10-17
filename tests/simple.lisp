@@ -12,6 +12,6 @@
 (defun extract (graph)
   (remove nil
           (liebler:map-vertices 'list
-                                (lambda (v c)
-                                  (unless (zerop c) v))
+                                (lambda (v)
+                                  (unless (zerop (liebler:color graph v)) v))
                                 graph)))
