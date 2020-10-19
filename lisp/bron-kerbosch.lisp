@@ -17,7 +17,7 @@
                      (color-graph graph 4
                                   :color (lambda (v)
                                            (cond
-                                             ((= v vertex)
+                                             ((eql v vertex)
                                                1)
                                              ((and (> (color graph v) 1)
                                                    (not (neighborp graph vertex v)))

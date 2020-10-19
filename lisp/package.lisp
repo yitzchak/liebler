@@ -7,10 +7,12 @@
     #:count-vertices
     #:directedp
     #:make-adjacency-matrix
+    #:map-edges
     #:map-vertices
+    #:neighborp
     #:notall-vertices
     #:notany-vertices
-    #:neighborp
-    #:some-vertices
-    #:order))
+    #:order
+    #:rank
+    #:some-vertices))
 

@@ -23,13 +23,15 @@
 
 (defmethod color-graph (graph count &key color)
   (let ((colored-graph (make-instance 'colored-graph :graph graph)))
-    (map-vertices nil
-                  (lambda (vertex)
-                    (setf (color colored-graph vertex)
-                          (if (functionp color)
-                            (funcall color vertex)
-                            color)))
-                  graph)
+    (when (and color
+               (not (equal 0 color)))
+      (map-vertices nil
+                    (lambda (vertex)
+                      (setf (color colored-graph vertex)
+                            (if (functionp color)
+                              (funcall color vertex)
+                              color)))
+                    graph))
     colored-graph))
 
 

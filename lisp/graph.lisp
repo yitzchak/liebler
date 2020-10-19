@@ -30,7 +30,8 @@
 
 (defgeneric color (graph vertex)
   (:method (graph vertex)
-    (declare (ignore graph vertex))))
+    (declare (ignore graph vertex))
+    0))
 
 
 (defgeneric (setf color) (new-value graph vertex))
