@@ -4,6 +4,18 @@
 (defgeneric directedp (graph))
 
 
+(defgeneric vertices (graph))
+
+
+(defgeneric advance (iterator))
+
+
+(defgeneric current (iterator))
+
+
+(defgeneric reset (iterator))
+
+
 (defgeneric map-vertices (result-type function graph))
 
 

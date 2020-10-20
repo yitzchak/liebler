@@ -22,6 +22,42 @@
         (setf (aref matrix (cdr edge) (car edge)) 1)))))
 
 
+(defclass adjacency-matrix-vertex-iterator ()
+  ((current
+     :accessor current)
+   (graph
+     :reader graph
+     :initarg :graph)))
+
+
+(defmethod initialize-instance :after ((iterator adjacency-matrix-vertex-iterator) &rest initargs &key &allow-other-keys)
+  (declare (ignore initargs))
+  (reset iterator))
+
+
+(defmethod vertices ((graph adjacency-matrix))
+  (make-instance 'adjacency-matrix-vertex-iterator :graph graph))
+
+
+(defmethod advance ((iterator adjacency-matrix-vertex-iterator))
+  (with-slots (current)
+              iterator
+    (when current
+      (incf current)
+      (let ((valid (< current (rank (graph iterator)))))
+        (unless valid
+          (setf current nil))
+        valid))))
+
+
+(defmethod reset ((iterator adjacency-matrix-vertex-iterator))
+  (set (current iterator)
+       (if (zerop (rank (graph iterator)))
+         nil
+         0))
+  (values))
+
+
 (defmethod neighborp ((graph adjacency-matrix) vertex1 vertex2)
   (not (zerop (aref (matrix graph) vertex1 vertex2))))
 

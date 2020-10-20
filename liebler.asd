@@ -9,6 +9,7 @@
                  (:file "graph")
                  (:file "adjacency-matrix")
                  (:file "colored-graph")
+                 (:file "modular-product")
                  (:file "bron-kerbosch"))))
   :description "")
 
