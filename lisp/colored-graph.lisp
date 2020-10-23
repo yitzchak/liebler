@@ -5,7 +5,7 @@
   ((vertex-colors
      :reader vertex-colors
      :initarg :vertex-colors
-     :initform (make-hash-table))
+     :initform (make-hash-table :test #'equalp))
    (graph
      :reader graph
      :initarg :graph)))
@@ -59,8 +59,8 @@
   (setf (neighborp (graph graph) vertex1 vertex2) new-value))
 
 
-(defmethod rank ((graph colored-graph) vertex)
-  (rank (graph graph) vertex))
+(defmethod degree ((graph colored-graph) vertex)
+  (degree (graph graph) vertex))
 
 
 (defmethod order ((graph colored-graph))

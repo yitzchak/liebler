@@ -10,6 +10,9 @@
 (defgeneric advance (iterator))
 
 
+(defgeneric valid (iterator))
+
+
 (defgeneric current (iterator))
 
 
@@ -31,7 +34,11 @@
 (defgeneric (setf neighborp) (new-value graph vertex1 vertex2))
 
 
-(defgeneric rank (graph vertex))
+(defgeneric degree (graph vertex)
+  (:method (graph vertex)
+    (count-vertices (lambda (v)
+                      (neighborp graph vertex v))
+                    graph)))
 
 
 (defgeneric order (graph))

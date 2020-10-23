@@ -42,19 +42,23 @@
 (defmethod advance ((iterator adjacency-matrix-vertex-iterator))
   (with-slots (current)
               iterator
-    (when current
+   (when current
       (incf current)
-      (let ((valid (< current (rank (graph iterator)))))
+      (let ((valid (< current (order (graph iterator)))))
         (unless valid
           (setf current nil))
         valid))))
 
 
+(defmethod valid ((iterator adjacency-matrix-vertex-iterator))
+  (and (current iterator) t))
+
+
 (defmethod reset ((iterator adjacency-matrix-vertex-iterator))
-  (set (current iterator)
-       (if (zerop (rank (graph iterator)))
-         nil
-         0))
+  (setf (current iterator)
+        (if (zerop (order (graph iterator)))
+          nil
+          0))
   (values))
 
 
@@ -113,6 +117,5 @@
 
 (defmethod (setf color) (new-value (graph colored-adjacency-matrix) vertex)
   (setf (aref (vertex-colors graph) vertex) new-value))
-
 
 

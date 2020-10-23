@@ -5,8 +5,12 @@
                                                         (2 . 3) (3 . 4) (3 . 5))))
 
 
+(defparameter h (liebler:make-adjacency-matrix 6
+                                               :edges '((0 . 1) (0 . 4) (1 . 4) (1 . 2)
+                                                        (2 . 3) (3 . 5))))
 
-(defparameter a (liebler:bron-kerbosch g))
+
+(defparameter p (liebler::modular-product g h))
 
 
 (defun extract (graph)
