@@ -10,7 +10,8 @@
                  (:file "adjacency-matrix")
                  (:file "colored-graph")
                  (:file "modular-product")
-                 (:file "bron-kerbosch"))))
+                 (:file "bron-kerbosch")
+                 (:file "max-clique-seq"))))
   :description "")
 
 

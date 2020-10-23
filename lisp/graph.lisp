@@ -47,6 +47,16 @@
 (defgeneric color-graph (graph count &key color))
 
 
+(defgeneric colors (graph)
+  (:method (graph)
+    1))
+
+
+(defgeneric copy-colored-graph (graph)
+  (:method (graph)
+    (color-graph graph (colors graph) :color (lambda (vertex) (color graph vertex)))))
+
+
 (defgeneric color (graph vertex)
   (:method (graph vertex)
     (declare (ignore graph vertex))
@@ -110,3 +120,10 @@
 
 
 (defgeneric copy-graph (graph))
+
+
+(defgeneric all-colored-p (graph color)
+  (:method (graph color)
+    (all-vertices (lambda (vertex)
+                    (= color (color graph vertex)))
+                  graph)))
