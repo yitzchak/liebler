@@ -4,7 +4,8 @@
 (defclass adjacency-matrix ()
   ((directedp
      :reader directedp
-     :initarg :directedp)
+     :initarg :directedp
+     :initform nil)
    (order
      :reader order
      :initarg :order)
@@ -44,8 +45,8 @@
               iterator
     (when current
       (unless (< (incf current) (order (graph iterator)))
-        (setf current nil))
-      iterator))
+        (setf current nil)))
+    iterator))
 
 
 (defmethod valid ((iterator adjacency-matrix-vertex-iterator))
@@ -62,7 +63,7 @@
 (defclass adjacency-matrix-edge-iterator ()
   ((vertex1
      :accessor vertex1)
-     (vertex2
+   (vertex2
      :accessor vertex2)
    (graph
      :reader graph
@@ -78,11 +79,11 @@
   (make-instance 'adjacency-matrix-edge-iterator :graph graph))
 
 
-(defmethod current ((iterator adjacency-matrix-vertex-iterator))
-  (values (vertex1 iterator) (vertex2 iterater)))
+(defmethod current ((iterator adjacency-matrix-edge-iterator))
+  (values (vertex1 iterator) (vertex2 iterator)))
 
 
-(defmethod advance ((iterator adjacency-matrix-vertex-iterator))
+(defmethod advance ((iterator adjacency-matrix-edge-iterator))
   (with-slots (vertex1 vertex2 graph)
               iterator
     (when vertex1
@@ -103,11 +104,11 @@
       iterator))
 
 
-(defmethod valid ((iterator adjacency-matrix-vertex-iterator))
+(defmethod valid ((iterator adjacency-matrix-edge-iterator))
   (and (vertex1 iterator) t))
 
 
-(defmethod reset ((iterator adjacency-matrix-vertex-iterator))
+(defmethod reset ((iterator adjacency-matrix-edge-iterator))
   (cond
     ((zerop (order (graph iterator)))
       (setf (vertex1 iterator) nil
@@ -133,7 +134,7 @@
     new-value))
 
 
-(defclass colored-adjacency-matrix (adjacency-matrix)
+(defclass colored-adjacency-matrix (child-graph)
   ((vertex-colors
      :reader vertex-colors
      :initarg :vertex-colors)))
@@ -141,8 +142,8 @@
 
 (defmethod color-graph ((graph adjacency-matrix) count &key color)
   (make-instance 'colored-adjacency-matrix
-                 :matrix (matrix graph)
-                 :order (order graph)
+                 :parent-graph graph
+                 :order graph
                  :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
                                                       (if (functionp color)
                                                         color

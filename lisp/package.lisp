@@ -9,11 +9,14 @@
     #:color
     #:count-vertices
     #:directedp
+    #:edges
     #:make-adjacency-matrix
     #:map-edges
+    #:map-neighbors
     #:map-vertices
     #:modular-product
     #:neighborp
+    #:neighbors
     #:notall-vertices
     #:notany-vertices
     #:order
