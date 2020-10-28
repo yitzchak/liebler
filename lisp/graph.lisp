@@ -4,6 +4,12 @@
 (defgeneric directedp (graph))
 
 
+(defgeneric edges (graph))
+
+
+(defgeneric neighbors (graph))
+
+
 (defgeneric vertices (graph))
 
 
@@ -17,15 +23,6 @@
 
 
 (defgeneric reset (iterator))
-
-
-(defgeneric map-vertices (result-type function graph))
-
-
-(defgeneric map-edges (result-type function graph))
-
-
-(defgeneric map-neighbors (result-type function graph vertex))
 
 
 (defgeneric neighborp (graph vertex1 vertex2))
@@ -64,6 +61,46 @@
 
 
 (defgeneric (setf color) (new-value graph vertex))
+
+
+(defun map-iterator (result-type function graph)
+  (cond
+    ((null result-type)
+      (do ((iterator (vertices graph) (advance iterator)))
+          ((not (valid iterator)) nil)
+        (apply function (multiple-value-list (current iterator)))))
+    ((subtypep result-type 'list)
+      (do ((iterator (vertices graph) (advance iterator))
+           result)
+          ((not (valid iterator)) (nreverse result))
+        (push (apply function (multiple-value-list (current iterator)))
+              result)))
+    ((subtypep result-type 'vector)
+      (do ((iterator (vertices graph) (advance iterator))
+           (result (make-array 32
+                               :adjustable t
+                               :element-type (if (and (listp result-type)
+                                                      (not (eql '* (second result-type))))
+                                               (second result-type)
+                                               t))))
+          ((not (valid iterator)) result)
+        (vector-push-extend
+          (apply function (multiple-value-list (current iterator)))
+          result)))
+    (t
+      (error "Unknown sequence type of ~s." result-type))))
+
+
+(defun map-vertices (result-type function graph)
+  (map-iterator result-type function (vertices graph)))
+
+
+(defun map-edges (result-type function graph)
+  (map-iterator result-type function (edges graph)))
+
+
+(defun map-neighbors (result-type function graph vertex)
+  (map-iterator result-type function (neighbors graph)))
 
 
 (defgeneric count-vertices (predicate graph)
@@ -127,3 +164,9 @@
     (all-vertices (lambda (vertex)
                     (= color (color graph vertex)))
                   graph)))
+
+
+(defgeneric order-graph-by-color (graph))
+
+
+

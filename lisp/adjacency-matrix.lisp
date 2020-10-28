@@ -42,12 +42,10 @@
 (defmethod advance ((iterator adjacency-matrix-vertex-iterator))
   (with-slots (current)
               iterator
-   (when current
-      (incf current)
-      (let ((valid (< current (order (graph iterator)))))
-        (unless valid
-          (setf current nil))
-        valid))))
+    (when current
+      (unless (< (incf current) (order (graph iterator)))
+        (setf current nil))
+      iterator))
 
 
 (defmethod valid ((iterator adjacency-matrix-vertex-iterator))
@@ -59,7 +57,53 @@
         (if (zerop (order (graph iterator)))
           nil
           0))
-  (values))
+  iterator)
+
+(defclass adjacency-matrix-edge-iterator ()
+  ((cursor
+     :accessor cursor)
+   (graph
+     :reader graph
+     :initarg :graph)))
+
+
+(defmethod initialize-instance :after ((iterator adjacency-matrix-edge-iterator) &rest initargs &key &allow-other-keys)
+  (declare (ignore initargs))
+  (reset iterator))
+
+
+(defmethod edges ((graph adjacency-matrix))
+  (make-instance 'adjacency-matrix-edge-iterator :graph graph))
+
+
+(defmethod current ((iterator adjacency-matrix-vertex-iterator))
+  (if (cursor iterator)
+    (values-list (cursor iterator))
+    (values nil nil)))
+
+
+(defmethod advance ((iterator adjacency-matrix-vertex-iterator))
+  (with-slots (cursor)
+              iterator
+    (when cursor
+      (unless (< (incf cursor) (order (graph iterator)))
+        (setf cursor nil))
+      iterator))
+
+
+(defmethod valid ((iterator adjacency-matrix-vertex-iterator))
+  (and (cursor iterator) t))
+
+
+(defmethod reset ((iterator adjacency-matrix-vertex-iterator))
+  (cond
+    ((zerop (order (graph iterator)))
+      (setf (cursor iterator) nil))
+    (t
+      (setf (cursor iterator) (list 0 0))
+      (when (zerop (aref (matrix (graph iterator)) 0 0))
+        (advance iterator))))
+  iterator)
 
 
 (defmethod neighborp ((graph adjacency-matrix) vertex1 vertex2)
@@ -73,48 +117,6 @@
                 (= vertex1 vertex2))
       (setf (aref (matrix graph) vertex2 vertex1) bit))
     new-value))
-
-
-(defmethod map-vertices (result-type function (graph adjacency-matrix))
-  (cond
-    ((null result-type)
-      (dotimes (vertex (order graph))
-        (funcall function vertex)))
-    ((subtypep result-type 'list)
-      (loop :for vertex :below (order graph)
-            :collect (funcall function vertex)))
-    ((subtypep result-type 'vector)
-      (let ((result (make-array (order graph)
-                                :element-type (if (and (listp result-type)
-                                                       (not (eql '* (second result-type))))
-                                                (second result-type)
-                                                t))))
-        (dotimes (vertex (order graph) result)
-          (setf (aref result vertex) (funcall function vertex)))))
-    (t)))
-
-
-(defmethod map-neighbors (result-type function (graph adjacency-matrix) vertex)
-  (cond
-    ((null result-type)
-      (dotimes (other-vertex (order graph))
-        (when (neighborp graph vertex other-vertex)
-          (funcall function other-vertex))))
-    ((subtypep result-type 'list)
-      (loop :for other-vertex :below (order graph)
-            :when (neighborp graph vertex other-vertex)
-            :collect (funcall function other-vertex)))
-    ((subtypep result-type 'vector)
-      (let ((result (make-array (order graph)
-                                :element-type (if (and (listp result-type)
-                                                       (not (eql '* (second result-type))))
-                                                (second result-type)
-                                                t)
-                                :fill-pointer 0)))
-        (dotimes (other-vertex (order graph) result)
-          (when (neighborp graph vertex other-vertex)
-            (vector-push-extend (funcall function vertex) result)))))
-    (t)))
 
 
 (defclass colored-adjacency-matrix (adjacency-matrix)

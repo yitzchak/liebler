@@ -67,4 +67,8 @@
   (order (graph graph)))
 
 
+(defmethod vertices ((graph colored-graph))
+  (vertices (graph graph)))
+
+
 
