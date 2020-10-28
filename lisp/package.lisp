@@ -9,6 +9,9 @@
     #:color
     #:count-vertices
     #:directedp
+    #:do-vertices
+    #:do-edges
+    #:do-neighbors
     #:edges
     #:make-adjacency-matrix
     #:map-edges

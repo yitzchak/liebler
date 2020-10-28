@@ -8,6 +8,7 @@
                 ((:file "package")
                  (:file "graph")
                  (:file "iterator")
+                 (:file "do")
                  (:file "functional")
                  (:file "child-graph")
                  (:file "adjacency-matrix")
