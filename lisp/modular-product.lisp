@@ -16,48 +16,6 @@
   (some #'directedp (graphs graph)))
 
 
-(defmethod map-vertices (result-type function (graph modular-product))
-  (cond
-    ((null result-type)
-      (prog ((it (vertices graph)))
-       repeat
-        (when (valid it)
-          (funcall function (current it))
-          (advance it)
-          (go repeat)))
-        nil)
-    ((subtypep result-type 'list)
-      (prog ((it (vertices graph))
-             results)
-       repeat
-        (when (valid it)
-          (push (funcall function (current it)) results)
-          (advance it)
-          (go repeat))
-        (return results)))
-    ((subtypep result-type 'vector)
-      (prog ((it (vertices graph))
-             (index 0)
-             (results (make-array (order graph) :element-type (if (and (listp result-type)
-                                                                     (not (eql '* (second result-type))))
-                                                              (second result-type)
-                                                              t))))
-       repeat
-        (when (valid it)
-          (setf (aref results index) (funcall function (current it)))
-          (advance it)
-          (incf index)
-          (go repeat))
-        (return results)))
-    (t)))
-
-
-;(defmethod map-edges (result-type function (graph modular-product)))
-
-
-;(defmethod map-neighbors (result-type function (graph modular-product) vertex))
-
-
 (defmethod neighborp ((graph modular-product) vertex1 vertex2)
   (reduce (lambda (x y)
             (or (and x y)

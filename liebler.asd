@@ -7,6 +7,7 @@
                 :components
                 ((:file "package")
                  (:file "graph")
+                 (:file "child-graph")
                  (:file "adjacency-matrix")
                  (:file "colored-graph")
                  (:file "modular-product")

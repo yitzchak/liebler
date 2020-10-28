@@ -68,12 +68,12 @@
     ((null result-type)
       (do ((iterator (vertices graph) (advance iterator)))
           ((not (valid iterator)) nil)
-        (apply function (multiple-value-list (current iterator)))))
+        (multiple-value-call function (current iterator))))
     ((subtypep result-type 'list)
       (do ((iterator (vertices graph) (advance iterator))
            result)
           ((not (valid iterator)) (nreverse result))
-        (push (apply function (multiple-value-list (current iterator)))
+        (push (multiple-value-call function (current iterator))
               result)))
     ((subtypep result-type 'vector)
       (do ((iterator (vertices graph) (advance iterator))
@@ -85,7 +85,7 @@
                                                t))))
           ((not (valid iterator)) result)
         (vector-push-extend
-          (apply function (multiple-value-list (current iterator)))
+          (multiple-value-call function (current iterator))
           result)))
     (t
       (error "Unknown sequence type of ~s." result-type))))

@@ -60,8 +60,10 @@
   iterator)
 
 (defclass adjacency-matrix-edge-iterator ()
-  ((cursor
-     :accessor cursor)
+  ((vertex1
+     :accessor vertex1)
+     (vertex2
+     :accessor vertex2)
    (graph
      :reader graph
      :initarg :graph)))
@@ -77,30 +79,42 @@
 
 
 (defmethod current ((iterator adjacency-matrix-vertex-iterator))
-  (if (cursor iterator)
-    (values-list (cursor iterator))
-    (values nil nil)))
+  (values (vertex1 iterator) (vertex2 iterater)))
 
 
 (defmethod advance ((iterator adjacency-matrix-vertex-iterator))
-  (with-slots (cursor)
+  (with-slots (vertex1 vertex2 graph)
               iterator
-    (when cursor
-      (unless (< (incf cursor) (order (graph iterator)))
-        (setf cursor nil))
+    (when vertex1
+      (tagbody
+       repeat
+        (incf vertex1)
+        (unless (or (<= vertex1 vertex2)
+                    (and (directedp graph)
+                         (< vertex1 (order graph))))
+          (setf vertex1 0)
+          (incf vertex2))
+        (cond
+          ((not (< vertex2 (order graph)))
+            (setf vertex1 nil
+                  vertex2 nil))
+          ((not (neighborp graph vertex1 vertex2))
+            (go repeat)))))
       iterator))
 
 
 (defmethod valid ((iterator adjacency-matrix-vertex-iterator))
-  (and (cursor iterator) t))
+  (and (vertex1 iterator) t))
 
 
 (defmethod reset ((iterator adjacency-matrix-vertex-iterator))
   (cond
     ((zerop (order (graph iterator)))
-      (setf (cursor iterator) nil))
+      (setf (vertex1 iterator) nil
+            (vertex2 iterator) nil))
     (t
-      (setf (cursor iterator) (list 0 0))
+      (setf (vertex1 iterator) 0
+            (vertex2 iterator) 0)
       (when (zerop (aref (matrix (graph iterator)) 0 0))
         (advance iterator))))
   iterator)
