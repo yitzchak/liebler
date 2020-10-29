@@ -23,15 +23,13 @@
         (setf (aref matrix (cdr edge) (car edge)) 1)))))
 
 
-(defclass adjacency-matrix-vertex-iterator ()
+(defclass adjacency-matrix-vertex-iterator (iterator)
   ((current
-     :accessor current)
-   (graph
-     :reader graph
-     :initarg :graph)))
+     :accessor current)))
 
 
-(defmethod initialize-instance :after ((iterator adjacency-matrix-vertex-iterator) &rest initargs &key &allow-other-keys)
+(defmethod initialize-instance :after ((iterator adjacency-matrix-vertex-iterator)
+                                       &rest initargs &key &allow-other-keys)
   (declare (ignore initargs))
   (reset iterator))
 
@@ -61,17 +59,62 @@
   iterator)
 
 
-(defclass adjacency-matrix-edge-iterator ()
+(defclass adjacency-matrix-neighbor-iterator (iterator)
+  ((current
+     :accessor current)
+   (vertex
+     :reader vertex
+     :initarg :vertex)))
+
+
+(defmethod initialize-instance :after ((iterator adjacency-matrix-neighbor-iterator)
+                                       &rest initargs &key &allow-other-keys)
+  (declare (ignore initargs))
+  (reset iterator))
+
+
+(defmethod neighbors ((graph adjacency-matrix) vertex)
+  (make-instance 'adjacency-matrix-neighbor-iterator :graph graph :vertex vertex))
+
+
+(defmethod advance ((iterator adjacency-matrix-neighbor-iterator))
+  (with-slots (current vertex graph)
+              iterator
+    (when current
+      (tagbody
+       repeat
+        (cond
+          ((not (< (incf current) (order (graph iterator))))
+            (setf current nil))
+          ((not (neighborp graph vertex current))
+            (go repeat)))))
+    iterator))
+
+
+(defmethod valid ((iterator adjacency-matrix-neighbor-iterator))
+  (and (current iterator) t))
+
+
+(defmethod reset ((iterator adjacency-matrix-neighbor-iterator))
+  (cond
+    ((zerop (order (graph iterator)))
+      (setf (current iterator) nil))
+    (t
+      (setf (current iterator) 0)
+      (unless (neighborp (graph iterator) (vertex iterator) 0)
+        (advance iterator))))
+  iterator)
+
+
+(defclass adjacency-matrix-edge-iterator (iterator)
   ((vertex1
      :accessor vertex1)
    (vertex2
-     :accessor vertex2)
-   (graph
-     :reader graph
-     :initarg :graph)))
+     :accessor vertex2)))
 
 
-(defmethod initialize-instance :after ((iterator adjacency-matrix-edge-iterator) &rest initargs &key &allow-other-keys)
+(defmethod initialize-instance :after ((iterator adjacency-matrix-edge-iterator)
+                                       &rest initargs &key &allow-other-keys)
   (declare (ignore initargs))
   (reset iterator))
 
