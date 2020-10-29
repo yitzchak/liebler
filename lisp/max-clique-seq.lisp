@@ -7,13 +7,6 @@
         (vcopy (copy-colored-graph v1) (copy-colored-graph v1))
         (k 1 (1+ k)))
        ((all-colored-p v1 1) u)
-    (print "foo")
-    (print u)
-    (print (map-vertices 'list (lambda (v) (cons v (color u v))) u))
-    (print v1)
-    (print (map-vertices 'list (lambda (v) (cons v (color v1 v))) v1))
-    (print vcopy)
-    (print (map-vertices 'list (lambda (v) (cons v (color vcopy v))) vcopy))
     (do-vertices (vertex vcopy)
       (when (zerop (color vcopy vertex))
         (setf (color v1 vertex) 1

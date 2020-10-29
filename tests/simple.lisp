@@ -19,3 +19,10 @@
                                 (lambda (v)
                                   (unless (zerop (liebler:color graph v)) v))
                                 graph)))
+
+
+(defun color-assoc (graph)
+  (liebler:map-vertices 'list
+                        (lambda (vertex)
+                          (cons vertex (liebler:color graph vertex)))
+                        graph))

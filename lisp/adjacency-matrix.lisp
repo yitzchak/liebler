@@ -60,6 +60,7 @@
           0))
   iterator)
 
+
 (defclass adjacency-matrix-edge-iterator ()
   ((vertex1
      :accessor vertex1)
@@ -137,12 +138,16 @@
 (defclass colored-adjacency-matrix (child-graph)
   ((vertex-colors
      :reader vertex-colors
-     :initarg :vertex-colors)))
+     :initarg :vertex-colors)
+   (colors
+     :reader colors
+     :initarg :colors)))
 
 
 (defmethod color-graph ((graph adjacency-matrix) count &key color)
   (make-instance 'colored-adjacency-matrix
                  :parent-graph graph
+                 :colors count
                  :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
                                                       (if (functionp color)
                                                         color
@@ -155,6 +160,7 @@
 (defmethod color-graph ((graph colored-adjacency-matrix) count &key color)
   (make-instance 'colored-adjacency-matrix
                  :parent-graph (parent-graph graph)
+                 :colors count
                  :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
                                                       (if (functionp color)
                                                         color
@@ -172,3 +178,8 @@
   (setf (aref (vertex-colors graph) vertex) new-value))
 
 
+(defmethod copy-colored-graph ((graph colored-adjacency-matrix))
+  (make-instance 'colored-adjacency-matrix
+                 :parent-graph (parent-graph graph)
+                 :colors (colors graph)
+                 :vertex-colors (copy-seq (vertex-colors graph))))
