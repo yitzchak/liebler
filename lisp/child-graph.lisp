@@ -40,7 +40,7 @@
 
 
 (defmethod color-graph ((graph child-graph) count &key color)
-  (color-graph (parent-graph graph) count :key color))
+  (color-graph (parent-graph graph) count :color color))
 
 
 (defmethod colors ((graph child-graph))

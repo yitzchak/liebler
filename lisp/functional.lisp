@@ -22,6 +22,7 @@
     ((subtypep result-type 'vector)
       (prog ((result (make-array 32
                                  :adjustable t
+                                 :fill-pointer 0
                                  :element-type (if (and (listp result-type)
                                                         (not (eql '* (second result-type))))
                                                  (second result-type)

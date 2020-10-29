@@ -5,7 +5,10 @@
   ((vertex-colors
      :reader vertex-colors
      :initarg :vertex-colors
-     :initform (make-hash-table :test #'equalp))))
+     :initform (make-hash-table :test #'equalp)))
+   (colors
+     :reader colors
+     :initarg :colors))
 
 
 (defmethod color ((graph colored-graph) vertex)
@@ -19,16 +22,15 @@
 
 
 (defmethod color-graph (graph count &key color)
-  (let ((colored-graph (make-instance 'colored-graph :parent-graph graph)))
-    (when (and color
-               (not (equal 0 color)))
-      (map-vertices nil
-                    (lambda (vertex)
-                      (setf (color colored-graph vertex)
-                            (if (functionp color)
-                              (funcall color vertex)
-                              color)))
-                    graph))
+  (let ((colored-graph (make-instance 'colored-graph :parent-graph graph :colors count)))
+    (cond
+      ((functionp color)
+        (do-vertices (vertex colored-graph)
+          (setf (color colored-graph vertex) (funcall color vertex))))
+      ((and color
+            (not (zerop color)))
+        (do-vertices (vertex colored-graph)
+          (setf (color colored-graph vertex) color))))
     colored-graph))
 
 

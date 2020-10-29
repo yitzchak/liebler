@@ -7,17 +7,13 @@
         (vcopy (copy-colored-graph v1) (copy-colored-graph v1))
         (k 1 (1+ k)))
        ((all-colored-p v1 1) u)
-    (map-vertices nil
-                  (lambda (vertex)
-                    (when (zerop (color vcopy vertex))
-                      (setf (color v1 vertex) 1
-                            (color vcopy vertex) 1)
-                      (map-neighbors nil
-                                     (lambda (vertex2)
-                                       (setf (color vcopy vertex2) 1))
-                                     vcopy)
-                      (when (> k kmin)
-                        (setf (color u vertex) k))))
-                  vcopy)))
+    (do-vertices (vertex vcopy)
+      (when (zerop (color vcopy vertex))
+        (setf (color v1 vertex) 1
+              (color vcopy vertex) 1)
+        (do-neighbors (neighbor vcopy vertex)
+          (setf (color vcopy neighbor) 1))
+        (when (> k kmin)
+          (setf (color u vertex) k))))))
 
 

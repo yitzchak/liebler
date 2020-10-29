@@ -148,7 +148,7 @@
                                                         color
                                                         (lambda (vertex)
                                                           (declare (ignore vertex))
-                                                          color))
+                                                          (or color 0)))
                                                       graph)))
 
 
