@@ -152,6 +152,18 @@
                                                       graph)))
 
 
+(defmethod color-graph ((graph colored-adjacency-matrix) count &key color)
+  (make-instance 'colored-adjacency-matrix
+                 :parent-graph (parent-graph graph)
+                 :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
+                                                      (if (functionp color)
+                                                        color
+                                                        (lambda (vertex)
+                                                          (declare (ignore vertex))
+                                                          (or color 0)))
+                                                      graph)))
+
+
 (defmethod color ((graph colored-adjacency-matrix) vertex)
   (aref (vertex-colors graph) vertex))
 

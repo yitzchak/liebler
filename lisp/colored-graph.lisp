@@ -5,10 +5,10 @@
   ((vertex-colors
      :reader vertex-colors
      :initarg :vertex-colors
-     :initform (make-hash-table :test #'equalp)))
+     :initform (make-hash-table :test #'equalp))
    (colors
      :reader colors
-     :initarg :colors))
+     :initarg :colors)))
 
 
 (defmethod color ((graph colored-graph) vertex)
