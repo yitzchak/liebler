@@ -105,3 +105,23 @@
                 graph))
 
 
+(defun reduce-iterator (function iterator initial-value)
+  (prog ((result initial-value))
+   repeat
+    (unless (valid iterator)
+      (return result))
+    (setf result (multiple-value-call function result (current iterator)))
+    (advance iterator)
+    (go repeat)))
+
+
+(defun reduce-vertices (function graph initial-value)
+  (reduce-iterator function (vertices graph) initial-value))
+
+
+(defun reduce-neighbors (function graph vertex initial-value)
+  (reduce-iterator function (neighbors graph vertex) initial-value))
+
+
+(defun reduce-edges (function graph initial-value)
+  (reduce-iterator function (edges graph) initial-value))

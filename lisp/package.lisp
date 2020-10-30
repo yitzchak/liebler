@@ -1,6 +1,7 @@
 (defpackage #:liebler
   (:use :common-lisp)
   (:export
+    #:advance
     #:all-vertices
     #:bron-kerbosch
     #:bron-kerbosch-1
@@ -8,10 +9,12 @@
     #:bron-kerbosch-2-queue
     #:color
     #:count-vertices
+    #:current
+    #:degree
     #:directedp
-    #:do-vertices
     #:do-edges
     #:do-neighbors
+    #:do-vertices
     #:edges
     #:make-adjacency-matrix
     #:map-edges
@@ -23,11 +26,11 @@
     #:notall-vertices
     #:notany-vertices
     #:order
-    #:degree
-    #:some-vertices
-    #:vertices
-    #:valid
-    #:advance
+    #:reduce-edges
+    #:reduce-neighbors
+    #:reduce-vertices
     #:reset
-    #:current))
+    #:some-vertices
+    #:valid
+    #:vertices))
 

@@ -10,11 +10,7 @@
 (defgeneric (setf neighborp) (new-value graph vertex1 vertex2))
 
 
-(defgeneric degree (graph vertex)
-  (:method (graph vertex)
-    (count-vertices (lambda (v)
-                      (neighborp graph vertex v))
-                    graph)))
+(defgeneric degree (graph vertex))
 
 
 (defgeneric order (graph))
