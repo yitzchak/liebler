@@ -26,11 +26,13 @@
     #:notall-vertices
     #:notany-vertices
     #:order
+    #:product
     #:reduce-edges
     #:reduce-neighbors
     #:reduce-vertices
     #:reset
     #:some-vertices
+    #:tensor-product
     #:valid
     #:vertices))
 

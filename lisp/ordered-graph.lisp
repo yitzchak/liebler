@@ -1,13 +1,10 @@
 (in-package #:lieber)
 
 
-(defclass ordered-graph ()
+(defclass ordered-graph (child-graph)
   ((vertex-list
      :reader vertex-list
-     :initarg :vertex-list)
-   (graph
-     :reader graph
-     :initarg :graph)))
+     :initarg :vertex-list)))
 
 
 (defmethod order-graph-by-color (graph)
@@ -16,7 +13,7 @@
                                            #'<
                                            :key (lambda (vertex)
                                                   (color graph vertex)))
-                 :graph graph))
+                 :parent-graph graph))
 
 
 (defclass ordered-graph-vertex-iterator ()

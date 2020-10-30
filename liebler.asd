@@ -14,7 +14,7 @@
                  (:file "child-graph")
                  (:file "adjacency-matrix")
                  (:file "colored-graph")
-                 (:file "modular-product")
+                 (:file "product")
                  (:file "bron-kerbosch")
                  (:file "max-clique-seq"))))
   :description "")

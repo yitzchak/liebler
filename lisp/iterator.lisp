@@ -94,7 +94,64 @@
       (advance parent-iterator))))
 
 
+(defclass edge-iterator (iterator)
+  ((vertex-iterator
+     :reader vertex-iterator
+     :initarg :vertex-iterator)
+   (neighbor-iterator
+     :accessor neighbor-iterator
+     :initform nil)))
 
 
+(defmethod initialize-instance :after ((iterator edge-iterator) &rest initargs &key &allow-other-keys)
+  (declare (ignore initargs))
+  (reset iterator))
 
 
+(defmethod edges (graph)
+  (make-instance 'edge-iterator
+                 :graph graph
+                 :vertex-iterator (vertices graph)))
+
+
+(defmethod valid ((iterator neighbor-iterator))
+  (and (valid (vertex-iterator iterator))
+       (neighbor-iterator iterator)
+       (valid (neighbor-iterator iterator))))
+
+
+(defmethod current ((iterator neighbor-iterator))
+  (values (current (vertex-iterator iterator))
+          (when (neighbor-iterator iterator)
+            (current (neighbor-iterator iterator)))))
+
+
+(defmethod advance ((iterator neighbor-iterator))
+  (with-slots (vertex-iterator graph neighbor-iterator)
+              iterator
+    (when neighbor-iterator
+      (advance neighbor-iterator))
+    (unless (and neighbor-iterator
+                 (valid neighbor-iterator))
+      (tagbody
+       repeat
+        (advance vertex-iterator)
+        (when (valid vertex-iterator)
+          (setf neighbor-iterator (neighbors graph (current vertex-iterator)))
+          (unless (valid neighbor-iterator)
+            (go repeat))))))
+  iterator)
+
+
+(defmethod reset ((iterator neighbor-iterator))
+  (with-slots (vertex-iterator neighbor-iterator graph)
+              iterator
+    (reset vertex-iterator)
+    (cond
+      ((valid vertex-iterator)
+        (setf neighbor-iterator (neighbors graph (current vertex-iterator)))
+        (unless (valid neighbor-iterator)
+          (advance iterator)))
+      (t
+        (setf neighbor-iterator nil))))
+  iterator)
