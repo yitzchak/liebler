@@ -114,19 +114,19 @@
                  :vertex-iterator (vertices graph)))
 
 
-(defmethod valid ((iterator neighbor-iterator))
+(defmethod valid ((iterator edge-iterator))
   (and (valid (vertex-iterator iterator))
        (neighbor-iterator iterator)
        (valid (neighbor-iterator iterator))))
 
 
-(defmethod current ((iterator neighbor-iterator))
+(defmethod current ((iterator edge-iterator))
   (values (current (vertex-iterator iterator))
           (when (neighbor-iterator iterator)
             (current (neighbor-iterator iterator)))))
 
 
-(defmethod advance ((iterator neighbor-iterator))
+(defmethod advance ((iterator edge-iterator))
   (with-slots (vertex-iterator graph neighbor-iterator)
               iterator
     (when neighbor-iterator
@@ -143,7 +143,7 @@
   iterator)
 
 
-(defmethod reset ((iterator neighbor-iterator))
+(defmethod reset ((iterator edge-iterator))
   (with-slots (vertex-iterator neighbor-iterator graph)
               iterator
     (reset vertex-iterator)
