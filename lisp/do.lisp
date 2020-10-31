@@ -7,7 +7,7 @@
     `(prog ((,iterator-var (vertices ,graph))
             ,vertex-var)
       ,repeat
-       (unless (valid ,iterator-var)
+       (unless (validp ,iterator-var)
          (setq ,vertex-var nil)
          (return ,result-form))
        (setq ,vertex-var (current ,iterator-var))
@@ -22,7 +22,7 @@
     `(prog ((,iterator-var (neighbors ,graph ,vertex))
             ,vertex-var)
       ,repeat
-       (unless (valid ,iterator-var)
+       (unless (validp ,iterator-var)
          (setq ,vertex-var nil)
          (return ,result-form))
        (setq ,vertex-var (current ,iterator-var))
@@ -37,7 +37,7 @@
     `(prog ((,iterator-var (edges ,graph))
             ,vertex1-var ,vertex2-var)
       ,repeat
-       (unless (valid ,iterator-var)
+       (unless (validp ,iterator-var)
          (setq ,vertex1-var nil
                ,vertex2-var nil)
          (return ,result-form))

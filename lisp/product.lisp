@@ -26,8 +26,8 @@
   (make-instance 'product-vertex-iterator :iterators (mapcar #'vertices (graphs graph))))
 
 
-(defmethod valid ((iterator product-vertex-iterator))
-  (every #'valid (iterators iterator)))
+(defmethod validp ((iterator product-vertex-iterator))
+  (every #'validp (iterators iterator)))
 
 
 (defmethod current ((iterator product-vertex-iterator))
@@ -38,7 +38,7 @@
   (do ((it (iterators iterator) (cdr it)))
       ((null it) nil)
     (advance (car it))
-    (when (valid (car it))
+    (when (validp (car it))
       (return t))
     (when (cdr it)
       (reset (car it)))))

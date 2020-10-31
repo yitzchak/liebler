@@ -13,6 +13,9 @@
 (defgeneric degree (graph vertex))
 
 
+(defgeneric ex-degree (graph vertex))
+
+
 (defgeneric order (graph))
 
 
@@ -41,7 +44,11 @@
 (defgeneric copy-graph (graph))
 
 
-(defgeneric order-graph-by-color (graph))
+(defgeneric order-graph-by-color (graph &optional predicate))
 
 
+(defgeneric color-by-degree (graph))
+
+
+(defgeneric color-by-ex-degree (graph))
 

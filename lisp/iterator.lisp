@@ -20,7 +20,7 @@
 (defgeneric advance (iterator))
 
 
-(defgeneric valid (iterator))
+(defgeneric validp (iterator))
 
 
 (defgeneric current (iterator))
@@ -39,8 +39,8 @@
   (advance (parent-iterator iterator)))
 
 
-(defmethod valid ((iterator child-iterator))
-  (valid (parent-iterator iterator)))
+(defmethod validp ((iterator child-iterator))
+  (validp (parent-iterator iterator)))
 
 
 (defmethod current ((iterator child-iterator))
@@ -61,7 +61,7 @@
   (declare (ignore initargs))
   (with-slots (parent-iterator graph vertex)
               iterator
-    (when (and (valid parent-iterator)
+    (when (and (validp parent-iterator)
                (not (neighborp graph vertex (current parent-iterator))))
       (advance parent-iterator))))
 
@@ -79,7 +79,7 @@
     (tagbody
      repeat
       (advance parent-iterator)
-      (when (and (valid parent-iterator)
+      (when (and (validp parent-iterator)
                  (not (neighborp graph vertex (current parent-iterator))))
         (go repeat)))
     iterator))
@@ -89,7 +89,7 @@
   (with-slots (parent-iterator graph vertex)
               iterator
     (reset parent-iterator)
-    (when (and (valid parent-iterator)
+    (when (and (validp parent-iterator)
                (not (neighborp graph vertex (current parent-iterator))))
       (advance parent-iterator))))
 
@@ -114,10 +114,10 @@
                  :vertex-iterator (vertices graph)))
 
 
-(defmethod valid ((iterator edge-iterator))
-  (and (valid (vertex-iterator iterator))
+(defmethod validp ((iterator edge-iterator))
+  (and (validp (vertex-iterator iterator))
        (neighbor-iterator iterator)
-       (valid (neighbor-iterator iterator))))
+       (validp (neighbor-iterator iterator))))
 
 
 (defmethod current ((iterator edge-iterator))
@@ -132,13 +132,13 @@
     (when neighbor-iterator
       (advance neighbor-iterator))
     (unless (and neighbor-iterator
-                 (valid neighbor-iterator))
+                 (validp neighbor-iterator))
       (tagbody
        repeat
         (advance vertex-iterator)
-        (when (valid vertex-iterator)
+        (when (validp vertex-iterator)
           (setf neighbor-iterator (neighbors graph (current vertex-iterator)))
-          (unless (valid neighbor-iterator)
+          (unless (validp neighbor-iterator)
             (go repeat))))))
   iterator)
 
@@ -148,9 +148,9 @@
               iterator
     (reset vertex-iterator)
     (cond
-      ((valid vertex-iterator)
+      ((validp vertex-iterator)
         (setf neighbor-iterator (neighbors graph (current vertex-iterator)))
-        (unless (valid neighbor-iterator)
+        (unless (validp neighbor-iterator)
           (advance iterator)))
       (t
         (setf neighbor-iterator nil))))

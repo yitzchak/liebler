@@ -8,6 +8,12 @@
     #:bron-kerbosch-1-queue
     #:bron-kerbosch-2-queue
     #:color
+    #:color-graph
+    #:color-by-degree
+    #:colors
+    #:copy-colored-graph
+    #:copy-graph
+    #:order-graph-by-color
     #:count-vertices
     #:current
     #:degree
@@ -16,6 +22,7 @@
     #:do-neighbors
     #:do-vertices
     #:edges
+    #:ex-degree
     #:make-adjacency-matrix
     #:map-edges
     #:map-neighbors
@@ -33,6 +40,6 @@
     #:reset
     #:some-vertices
     #:tensor-product
-    #:valid
+    #:validp
     #:vertices))
 

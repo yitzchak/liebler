@@ -47,7 +47,7 @@
     iterator))
 
 
-(defmethod valid ((iterator adjacency-matrix-vertex-iterator))
+(defmethod validp ((iterator adjacency-matrix-vertex-iterator))
   (and (current iterator) t))
 
 
@@ -91,7 +91,7 @@
     iterator))
 
 
-(defmethod valid ((iterator adjacency-matrix-neighbor-iterator))
+(defmethod validp ((iterator adjacency-matrix-neighbor-iterator))
   (and (current iterator) t))
 
 
@@ -148,7 +148,7 @@
       iterator))
 
 
-(defmethod valid ((iterator adjacency-matrix-edge-iterator))
+(defmethod validp ((iterator adjacency-matrix-edge-iterator))
   (and (vertex1 iterator) t))
 
 

@@ -6,14 +6,14 @@
     ((null result-type)
       (tagbody
        repeat
-        (when (valid iterator)
+        (when (validp iterator)
           (multiple-value-call function (current iterator))
           (advance iterator)
           (go repeat))))
     ((subtypep result-type 'list)
       (prog (result)
        repeat
-        (when (valid iterator)
+        (when (validp iterator)
           (push (multiple-value-call function (current iterator))
                 result)
           (advance iterator)
@@ -28,7 +28,7 @@
                                                  (second result-type)
                                                  t))))
        repeat
-        (when (valid iterator)
+        (when (validp iterator)
           (vector-push-extend
             (multiple-value-call function (current iterator))
             result)
@@ -108,7 +108,7 @@
 (defun reduce-iterator (function iterator initial-value)
   (prog ((result initial-value))
    repeat
-    (unless (valid iterator)
+    (unless (validp iterator)
       (return result))
     (setf result (multiple-value-call function result (current iterator)))
     (advance iterator)

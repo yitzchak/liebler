@@ -1,4 +1,4 @@
-(in-package #:lieber)
+(in-package #:liebler)
 
 
 (defclass ordered-graph (child-graph)
@@ -7,10 +7,10 @@
      :initarg :vertex-list)))
 
 
-(defmethod order-graph-by-color (graph)
+(defmethod order-graph-by-color (graph &optional predicate)
   (make-instance 'ordered-graph
                  :vertex-list (stable-sort (map-vertices 'list #'identity graph)
-                                           #'<
+                                           (or predicate #'<)
                                            :key (lambda (vertex)
                                                   (color graph vertex)))
                  :parent-graph graph))
@@ -36,7 +36,7 @@
   iterator)
 
 
-(defmethod valid ((iterator ordered-graph-vertex-iterator))
+(defmethod validp ((iterator ordered-graph-vertex-iterator))
   (and (tail iterator) t))
 
 
