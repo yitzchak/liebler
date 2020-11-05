@@ -51,60 +51,6 @@
   (map-iterator result-type function (neighbors graph vertex)))
 
 
-(defun count-vertices (predicate graph)
-  (let ((count 0))
-    (map-vertices nil
-                  (lambda (vertex)
-                    (when (funcall predicate vertex)
-                      (incf count)))
-                  graph)
-    count))
-
-
-(defun all-vertices (predicate graph)
-  (catch 'query
-    (map-vertices nil
-                  (lambda (vertex)
-                    (unless (funcall predicate vertex)
-                      (throw 'query nil)))
-                  graph)
-    t))
-
-
-(defun notall-vertices (predicate graph)
-  (catch 'query
-    (map-vertices nil
-                  (lambda (vertex)
-                    (unless (funcall predicate vertex)
-                      (throw 'query t)))
-                  graph)))
-
-
-(defun some-vertices (predicate graph)
-  (catch 'query
-    (map-vertices nil
-                  (lambda (vertex)
-                    (when (funcall predicate vertex)
-                      (throw 'query t)))
-                  graph)))
-
-
-(defun notany-vertices (predicate graph)
-  (catch 'query
-    (map-vertices nil
-                  (lambda (vertex)
-                    (when (funcall predicate vertex)
-                      (throw 'query nil)))
-                  graph)
-    t))
-
-
-(defun all-colored-p (graph color)
-  (all-vertices (lambda (vertex)
-                  (= color (color graph vertex)))
-                graph))
-
-
 (defun reduce-iterator (function iterator initial-value)
   (prog ((result initial-value))
    repeat
@@ -125,3 +71,49 @@
 
 (defun reduce-edges (function graph initial-value)
   (reduce-iterator function (edges graph) initial-value))
+
+
+(defun count-colored-vertices (graph)
+  (count-vertices (lambda (vertex)
+                    (not (zerop (color graph vertex))))
+                  graph))
+
+
+(defun count-vertices (predicate graph)
+  (reduce-vertices (lambda (previous vertex)
+                     (if (funcall predicate vertex)
+                      (1+ previous)
+                      previous))
+                   graph
+                   0))
+
+
+(defun all-vertices (predicate graph)
+  (do-vertices (vertex graph t)
+    (unless (funcall predicate vertex)
+      (return nil))))
+
+
+(defun notall-vertices (predicate graph)
+  (do-vertices (vertex graph nil)
+    (unless (funcall predicate vertex)
+      (return t))))
+
+
+(defun some-vertices (predicate graph)
+  (do-vertices (vertex graph nil)
+    (when (funcall predicate vertex)
+      (return t))))
+
+
+(defun notany-vertices (predicate graph)
+  (do-vertices (vertex graph t)
+    (when (funcall predicate vertex)
+      (return nil))))
+
+
+(defun all-colored-p (graph color)
+  (all-vertices (lambda (vertex)
+                  (= color (color graph vertex)))
+                graph))
+

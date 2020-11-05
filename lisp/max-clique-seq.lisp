@@ -17,3 +17,33 @@
           (setf (color u vertex) k))))))
 
 
+(defun max-clique-seq (graph)
+  (expand (color-graph graph 2 :color 1)
+          (order-graph-by-color (color-by-ex-degree graph) #'>)
+          (color-graph graph 2)
+          (color-graph graph 2)))
+
+
+(defun expand (v u c cmax)
+  (do-vertices (vertex u)
+    (unless (zerop (color u vertex))
+      (setf (color v vertex) 0)
+      (let ((diff (- (count-colored-vertices cmax)
+                     (count-colored-vertices c)))
+            (new-v (color-graph v 2 :color (lambda (other-vertex)
+                                             (if (and (not (zerop (color v other-vertex)))
+                                                      (neighborp v vertex other-vertex))
+                                               1
+                                               0)))))
+        (cond
+          ((<= (color u vertex) diff))
+          ((some-vertices (lambda (other-vertex)
+                            (not (zerop (color new-v other-vertex))))
+                          new-v)
+            (expand new-v (colorize v diff) (color-graph c 2 :color (lambda (other-vertex)
+                                                                    (if (equal other-vertex vertex)
+                                                                      1
+                                                                      (color c other-vertex))))
+                                                                      cmax))
+          ((>= 0 diff)
+            (setf (color cmax vertex) 1)))))))

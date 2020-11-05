@@ -52,3 +52,5 @@
 
 (defgeneric color-by-ex-degree (graph))
 
+
+(defgeneric make-subgraph (graph &optional predicate))
