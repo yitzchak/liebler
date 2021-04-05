@@ -19,6 +19,15 @@
 (defgeneric order (graph))
 
 
+(defgeneric vertices (graph))
+
+
+(defgeneric edges (graph))
+
+
+(defgeneric neighbors (graph vertex))
+
+
 (defgeneric color-graph (graph count &key color))
 
 

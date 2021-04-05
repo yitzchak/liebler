@@ -117,3 +117,39 @@
                   (= color (color graph vertex)))
                 graph))
 
+(defun some-colored-vertices (graph)
+  (some-vertices (lambda (vertex)
+                    (not (zerop (color graph vertex))))
+                  graph))
+
+
+(defun all-neighbors (predicate graph vertex)
+  (do-neighbors (other-vertex graph vertex t)
+    (unless (funcall predicate other-vertex)
+      (return nil))))
+
+
+(defun notall-neighbors (predicate graph vertex)
+  (do-neighbors (other-vertex graph vertex nil)
+    (unless (funcall predicate other-vertex)
+      (return t))))
+
+
+(defun some-neighbors (predicate graph vertex)
+  (do-neighbors (other-vertex graph vertex nil)
+    (when (funcall predicate other-vertex)
+      (return t))))
+
+
+(defun notany-neighbors (predicate graph vertex)
+  (do-neighbors (other-vertex graph vertex t)
+    (when (funcall predicate other-vertex)
+      (return nil))))
+
+
+(defun some-colored-neighbors (graph vertex)
+  (some-neighbors (lambda (vertex)
+                    (not (zerop (color graph vertex))))
+                  graph vertex))
+
+

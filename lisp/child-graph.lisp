@@ -57,3 +57,10 @@
 
 (defmethod (setf color) (new-value (graph child-graph) vertex)
   (setf (color (parent-graph graph) vertex) new-value))
+
+
+#|(defmethod khazern:make-iterator ((instance child-graph) type)
+  (khazern:make-iterator (parent-graph instance) type))
+|#
+
+

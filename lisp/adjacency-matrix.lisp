@@ -11,7 +11,260 @@
      :initarg :order)
    (matrix
      :reader matrix
-     :initarg :matrix)))
+     :initarg :matrix)
+   (vertices
+     :reader vertices)
+   (edges
+     :reader edges)))
+
+
+(defmethod neighborp ((graph adjacency-matrix) vertex1 vertex2)
+  (= 1 (aref (matrix graph) vertex1 vertex2)))
+
+
+(defclass adjacency-matrix-vertices (sequence standard-object)
+  ((parent
+     :reader parent
+     :initarg :parent)))
+
+
+(defmethod sequence:length ((instance adjacency-matrix-vertices))
+  (order (parent instance)))
+
+
+(defmethod sequence:elt ((instance adjacency-matrix-vertices) index)
+  (declare (ignore instance))
+  index)
+
+
+(defun adjacency-matrix-vertices-step (sequence iterator from-end)
+  (declare (ignore sequence))
+  (if from-end
+    (decf iterator)
+    (incf iterator)))
+
+
+(defun adjacency-matrix-vertices-endp (sequence iterator limit from-end)
+  (declare (ignore sequence from-end))
+  (= limit iterator))
+
+
+(defun adjacency-matrix-vertices-element (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defun adjacency-matrix-vertices-setf-element (new-value sequence iterator)
+  (declare (ignore new-value sequence iterator))
+  (error "Cannot set the vertex value for an adjacency matrix"))
+
+
+(defun adjacency-matrix-vertices-index (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defun adjacency-matrix-vertices-copy (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defmethod sequence:make-sequence-iterator ((sequence adjacency-matrix-vertices) &key from-end start end)
+  (values (if from-end
+            (or end (order (parent sequence)))
+            (or start 0))
+          (if from-end
+            (or start 0)
+            (or end (order (parent sequence))))
+          from-end
+          #'adjacency-matrix-vertices-step
+          #'adjacency-matrix-vertices-endp
+          #'adjacency-matrix-vertices-element
+          #'adjacency-matrix-vertices-setf-element
+          #'adjacency-matrix-vertices-index
+          #'adjacency-matrix-vertices-copy))
+
+
+(defclass adjacency-matrix-edges (sequence standard-object)
+  ((parent
+     :reader parent
+     :initarg :parent)))
+
+
+(defun adjacency-matrix-edges-find-next-edge (graph iterator-state)
+  (prog ((vertex1 (car iterator-state))
+         (vertex2 (cdr iterator-state)))
+   next
+    (when (< vertex1 (order graph))
+      (incf vertex2)
+      (unless (or (and (not (directedp graph))
+                       (<= vertex2 vertex1))
+                  (and (directedp graph)
+                       (< vertex2 (order graph))))
+        (incf vertex1)
+        (setf vertex2 -1)
+        (go next))
+      (when (zerop (aref (matrix graph) vertex1 vertex2))
+        (go next)))
+    (return (cons vertex1 vertex2))))
+
+
+(defmethod sequence:length ((instance adjacency-matrix-edges))
+  (do ((len 0)
+       (vertex1 0 (1+ vertex1)))
+      ((= (order (parent instance)) vertex1)
+       len)
+    (dotimes (vertex2 (if (directedp (parent instance))
+                        (order (parent instance))
+                        (1+ vertex1)))
+      (unless (zerop (aref (matrix (parent instance)) vertex1 vertex2))
+        (incf len)))))
+
+
+(defmethod sequence:elt ((instance adjacency-matrix-edges) index)
+  (declare (ignore instance))
+  index)
+
+
+(defun adjacency-matrix-edges-step (sequence iterator from-end)
+  (declare (ignore from-end))
+  (adjacency-matrix-edges-find-next-edge (parent sequence) iterator))
+
+
+(defun adjacency-matrix-edges-endp (sequence iterator limit from-end)
+  (declare (ignore sequence from-end))
+  (equalp limit iterator))
+
+
+(defun adjacency-matrix-edges-element (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defun adjacency-matrix-edges-setf-element (new-value sequence iterator)
+  (declare (ignore new-value sequence iterator))
+  (error "Cannot set the edge value for an adjacency matrix"))
+
+
+(defun adjacency-matrix-edges-index (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defun adjacency-matrix-edges-copy (sequence iterator)
+  (declare (ignore sequence))
+  (cons (car iterator) (cdr iterator)))
+
+
+(defmethod sequence:make-sequence-iterator ((sequence adjacency-matrix-edges) &key from-end start end)
+  (values (adjacency-matrix-edges-find-next-edge (parent sequence) (cons 0 -1))
+          (cons (order (parent sequence)) -1)
+          from-end
+          #'adjacency-matrix-edges-step
+          #'adjacency-matrix-edges-endp
+          #'adjacency-matrix-edges-element
+          #'adjacency-matrix-edges-setf-element
+          #'adjacency-matrix-edges-index
+          #'adjacency-matrix-edges-copy))
+
+
+(defclass adjacency-matrix-neighbors (sequence standard-object)
+  ((parent
+     :reader parent
+     :initarg :parent)
+   (vertex
+     :reader vertex
+     :initarg :vertex)))
+
+
+(defun adjacency-matrix-neighbors-find-next-edge (instance vertex2)
+  (prog ((vertex (vertex instance))
+         (order (order (parent instance)))
+         (matrix (matrix (parent instance))))
+   next
+    (when (< vertex2 order)
+      (incf vertex2)
+      (when (and (< vertex2 order)
+                 (zerop (aref matrix vertex vertex2)))
+        (go next)))
+    (return vertex2)))
+
+
+(defmethod sequence:length ((instance adjacency-matrix-neighbors))
+  (let ((len 0))
+    (dotimes (vertex2 (order (parent instance)) len)
+      (unless (zerop (aref (matrix (parent instance)) (vertex instance) vertex2))
+        (incf len)))))
+
+
+(defmethod sequence:elt ((instance adjacency-matrix-neighbors) index)
+  (declare (ignore instance))
+  index)
+
+
+(defun adjacency-matrix-neighbors-step (sequence iterator from-end)
+  (declare (ignore from-end))
+  (adjacency-matrix-neighbors-find-next-edge sequence iterator))
+
+
+(defun adjacency-matrix-neighbors-endp (sequence iterator limit from-end)
+  (declare (ignore sequence from-end))
+  (= limit iterator))
+
+
+(defun adjacency-matrix-neighbors-element (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defun adjacency-matrix-neighbors-setf-element (new-value sequence iterator)
+  (declare (ignore new-value sequence iterator))
+  (error "Cannot set the edge value for an adjacency matrix"))
+
+
+(defun adjacency-matrix-neighbors-index (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defun adjacency-matrix-neighbors-copy (sequence iterator)
+  (declare (ignore sequence))
+  iterator)
+
+
+(defmethod sequence:make-sequence-iterator ((sequence adjacency-matrix-neighbors) &key from-end start end)
+  (values (adjacency-matrix-neighbors-find-next-edge sequence -1)
+          (order (parent sequence))
+          from-end
+          #'adjacency-matrix-neighbors-step
+          #'adjacency-matrix-neighbors-endp
+          #'adjacency-matrix-neighbors-element
+          #'adjacency-matrix-neighbors-setf-element
+          #'adjacency-matrix-neighbors-index
+          #'adjacency-matrix-neighbors-copy))
+
+
+(defmethod neighbors ((instance adjacency-matrix) vertex)
+  (make-instance 'adjacency-matrix-neighbors :parent instance :vertex vertex))
+
+
+
+(defmethod initialize-instance :after ((instance adjacency-matrix) &rest initargs &key &allow-other-keys)
+  (declare (ignore initargs))
+  (setf (slot-value instance 'vertices)
+        (make-instance 'adjacency-matrix-vertices :parent instance)
+        (slot-value instance 'edges)
+        (make-instance 'adjacency-matrix-edges :parent instance))
+  instance)
+
+
+(defmethod degree ((graph adjacency-matrix) vertex)
+  (do ((other-vertex 0 (1+ other-vertex))
+       (order (order graph))
+       (degree 0))
+      ((>= other-vertex order) degree)
+    (unless (zerop (aref (matrix graph) vertex other-vertex))
+      (incf degree (if (= vertex other-vertex) 2 1)))))
 
 
 (defun make-adjacency-matrix (order &key directedp edges)
@@ -23,159 +276,96 @@
         (setf (aref matrix (cdr edge) (car edge)) 1)))))
 
 
-(defclass adjacency-matrix-vertex-iterator (iterator)
-  ((current
-     :accessor current)))
+#|(defstruct adjacency-matrix-vertex-iterator
+  graph
+  (vertex 0))
 
 
-(defmethod initialize-instance :after ((iterator adjacency-matrix-vertex-iterator)
-                                       &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (reset iterator))
+(defmethod khazern:make-iterator ((instance adjacency-matrix) (type (eql :vertex)))
+  (make-adjacency-matrix-vertex-iterator :graph instance))
 
 
-(defmethod vertices ((graph adjacency-matrix))
-  (make-instance 'adjacency-matrix-vertex-iterator :graph graph))
+(defmethod khazern:pop-head ((instance adjacency-matrix-vertex-iterator) &optional index)
+  (with-slots (graph vertex)
+              instance
+    (cond
+      ((< vertex (order graph))
+        (prog1
+          vertex
+          (incf vertex)))
+      (values))))
 
 
-(defmethod advance ((iterator adjacency-matrix-vertex-iterator))
-  (with-slots (current)
+(defmethod khazern:head ((instance adjacency-matrix-vertex-iterator) &optional index)
+  (with-slots (graph vertex)
+              instance
+    (if (< vertex (order graph))
+      vertex
+      (values))))
+
+
+(defmethod khazern:emptyp ((instance adjacency-matrix-vertex-iterator))
+  (>= (adjacency-matrix-vertex-iterator-vertex instance) (order (adjacency-matrix-vertex-iterator-graph instance))))
+
+
+(defstruct adjacency-matrix-edge-iterator
+  graph
+  (vertex1 0)
+  (vertex2 -1))
+
+
+(defun find-next-edge (iterator)
+  (with-slots (graph vertex1 vertex2)
               iterator
-    (when current
-      (unless (< (incf current) (order (graph iterator)))
-        (setf current nil)))
-    iterator))
-
-
-(defmethod validp ((iterator adjacency-matrix-vertex-iterator))
-  (and (current iterator) t))
-
-
-(defmethod reset ((iterator adjacency-matrix-vertex-iterator))
-  (setf (current iterator)
-        (if (zerop (order (graph iterator)))
-          nil
-          0))
-  iterator)
-
-
-(defclass adjacency-matrix-neighbor-iterator (iterator)
-  ((current
-     :accessor current)
-   (vertex
-     :reader vertex
-     :initarg :vertex)))
-
-
-(defmethod initialize-instance :after ((iterator adjacency-matrix-neighbor-iterator)
-                                       &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (reset iterator))
-
-
-(defmethod neighbors ((graph adjacency-matrix) vertex)
-  (make-instance 'adjacency-matrix-neighbor-iterator :graph graph :vertex vertex))
-
-
-(defmethod advance ((iterator adjacency-matrix-neighbor-iterator))
-  (with-slots (current vertex graph)
-              iterator
-    (when current
-      (tagbody
-       repeat
-        (cond
-          ((not (< (incf current) (order (graph iterator))))
-            (setf current nil))
-          ((not (neighborp graph vertex current))
-            (go repeat)))))
-    iterator))
-
-
-(defmethod validp ((iterator adjacency-matrix-neighbor-iterator))
-  (and (current iterator) t))
-
-
-(defmethod reset ((iterator adjacency-matrix-neighbor-iterator))
-  (cond
-    ((zerop (order (graph iterator)))
-      (setf (current iterator) nil))
-    (t
-      (setf (current iterator) 0)
-      (unless (neighborp (graph iterator) (vertex iterator) 0)
-        (advance iterator))))
-  iterator)
-
-
-(defclass adjacency-matrix-edge-iterator (iterator)
-  ((vertex1
-     :accessor vertex1)
-   (vertex2
-     :accessor vertex2)))
-
-
-(defmethod initialize-instance :after ((iterator adjacency-matrix-edge-iterator)
-                                       &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (reset iterator))
-
-
-(defmethod edges ((graph adjacency-matrix))
-  (make-instance 'adjacency-matrix-edge-iterator :graph graph))
-
-
-(defmethod current ((iterator adjacency-matrix-edge-iterator))
-  (values (vertex1 iterator) (vertex2 iterator)))
-
-
-(defmethod advance ((iterator adjacency-matrix-edge-iterator))
-  (with-slots (vertex1 vertex2 graph)
-              iterator
-    (when vertex1
-      (tagbody
-       repeat
-        (incf vertex1)
-        (unless (or (<= vertex1 vertex2)
+    (tagbody
+     next
+      (when (< vertex1 (order graph))
+        (incf vertex2)
+        (unless (or (and (not (directedp graph))
+                         (<= vertex2 vertex1))
                     (and (directedp graph)
-                         (< vertex1 (order graph))))
-          (setf vertex1 0)
-          (incf vertex2))
-        (cond
-          ((not (< vertex2 (order graph)))
-            (setf vertex1 nil
-                  vertex2 nil))
-          ((not (neighborp graph vertex1 vertex2))
-            (go repeat)))))
-      iterator))
+                         (< vertex2 (order graph))))
+          (incf vertex1)
+          (setf vertex2 -1)
+          (go next))
+        (when (zerop (aref (matrix graph) vertex1 vertex2))
+          (go next))))
+    iterator))
 
 
-(defmethod validp ((iterator adjacency-matrix-edge-iterator))
-  (and (vertex1 iterator) t))
+(defmethod khazern:make-iterator ((instance adjacency-matrix) (type (eql :edge)))
+  (find-next-edge (make-adjacency-matrix-edge-iterator :graph instance)))
 
 
-(defmethod reset ((iterator adjacency-matrix-edge-iterator))
-  (cond
-    ((zerop (order (graph iterator)))
-      (setf (vertex1 iterator) nil
-            (vertex2 iterator) nil))
-    (t
-      (setf (vertex1 iterator) 0
-            (vertex2 iterator) 0)
-      (when (zerop (aref (matrix (graph iterator)) 0 0))
-        (advance iterator))))
-  iterator)
+(defmethod khazern:pop-head ((instance adjacency-matrix-edge-iterator) &optional index)
+  (with-slots (graph vertex1 vertex2)
+              instance
+    (cond
+      ((< vertex1 (order graph))
+        (prog1
+          (case index
+            (0 vertex1)
+            (1 vertex2)
+            (otherwise (list vertex1 vertex2)))
+          (find-next-edge instance)))
+      (t
+        (values)))))
 
 
-(defmethod neighborp ((graph adjacency-matrix) vertex1 vertex2)
-  (not (zerop (aref (matrix graph) vertex1 vertex2))))
+(defmethod khazern:head ((instance adjacency-matrix-edge-iterator) &optional index)
+  (with-slots (graph vertex1 vertex2)
+              instance
+    (if (< vertex1 (order graph))
+      (case index
+        (0 vertex1)
+        (1 vertex2)
+        (otherwise (list vertex1 vertex2)))
+      (values))))
 
 
-(defmethod (setf neighborp) (new-value (graph adjacency-matrix) vertex1 vertex2)
-  (let ((bit (if new-value 1 0)))
-    (setf (aref (matrix graph) vertex1 vertex2) bit)
-    (unless (or (directedp graph)
-                (= vertex1 vertex2))
-      (setf (aref (matrix graph) vertex2 vertex1) bit))
-    new-value))
+(defmethod khazern:emptyp ((instance adjacency-matrix-edge-iterator))
+  (>= (adjacency-matrix-edge-iterator-vertex1 instance) (order (adjacency-matrix-edge-iterator-graph instance))))|#
+
 
 
 (defclass colored-adjacency-matrix (child-graph)
@@ -191,26 +381,26 @@
   (make-instance 'colored-adjacency-matrix
                  :parent-graph graph
                  :colors count
-                 :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
-                                                      (if (functionp color)
-                                                        color
-                                                        (lambda (vertex)
-                                                          (declare (ignore vertex))
-                                                          (or color 0)))
-                                                      graph)))
+                 :vertex-colors (map (list 'vector (list 'integer 0 (1- count)))
+                                     (if (functionp color)
+                                       color
+                                       (lambda (vertex)
+                                         (declare (ignore vertex))
+                                         (or color 0)))
+                                      (vertices graph))))
 
 
 (defmethod color-graph ((graph colored-adjacency-matrix) count &key color)
   (make-instance 'colored-adjacency-matrix
                  :parent-graph (parent-graph graph)
                  :colors count
-                 :vertex-colors (liebler:map-vertices (list 'vector (list 'integer 0 (1- count)))
-                                                      (if (functionp color)
-                                                        color
-                                                        (lambda (vertex)
-                                                          (declare (ignore vertex))
-                                                          (or color 0)))
-                                                      graph)))
+                 :vertex-colors (map (list 'vector (list 'integer 0 (1- count)))
+                                     (if (functionp color)
+                                       color
+                                       (lambda (vertex)
+                                         (declare (ignore vertex))
+                                         (or color 0)))
+                                     (vertices graph))))
 
 
 (defmethod color ((graph colored-adjacency-matrix) vertex)

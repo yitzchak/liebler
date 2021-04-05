@@ -19,13 +19,18 @@
 
 (defun max-clique-seq (graph)
   (expand (color-graph graph 2 :color 1)
-          (order-graph-by-color (color-by-ex-degree graph) #'>)
+          (colorize (color-graph (order-graph-by-color (color-by-ex-degree graph) #'>) 2 :color 2))
           (color-graph graph 2)
           (color-graph graph 2)))
 
 
 (defun expand (v u c cmax)
-  (do-vertices (vertex u)
+  (print (remove nil
+          (liebler:map-vertices 'list
+                                (lambda (v)
+                                  (unless (zerop (liebler:color u v)) v))
+                                u)))
+  (do-vertices (vertex u cmax)
     (unless (zerop (color u vertex))
       (setf (color v vertex) 0)
       (let ((diff (- (count-colored-vertices cmax)
@@ -35,15 +40,16 @@
                                                       (neighborp v vertex other-vertex))
                                                1
                                                0)))))
+        (print diff)
         (cond
           ((<= (color u vertex) diff))
-          ((some-vertices (lambda (other-vertex)
-                            (not (zerop (color new-v other-vertex))))
-                          new-v)
+          ((some-colored-vertices new-v)
             (expand new-v (colorize v diff) (color-graph c 2 :color (lambda (other-vertex)
                                                                     (if (equal other-vertex vertex)
                                                                       1
                                                                       (color c other-vertex))))
                                                                       cmax))
           ((>= 0 diff)
-            (setf (color cmax vertex) 1)))))))
+            (do-vertices (v c)
+              (setf (color cmax v)
+                    (if (equal v vertex) 1 (color c v))))))))))
