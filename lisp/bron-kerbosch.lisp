@@ -27,93 +27,69 @@
                (vertices graph)))))
 
 
-#|defun bron-kerbosch-1-queue (graph)
-  (prog ((graphs (list (color-graph graph 4 :color 2)))
-         g results
-         (steps 0))
-   repeat
-    (when (zerop (setf steps (mod (1+ steps) 100)))
-      (format t "~A ~A~%" (length results) (length graphs))
-      (finish-output))
-    (setf g (pop graphs))
-    (cond
-      ((notany-vertices (lambda (vertex)
-                          (> (color g vertex) 1))
-                        g)
-        (push g results))
-      (t
-        (map-vertices
-          nil
-          (lambda (vertex)
-            (when (= (color g vertex) 2)
-              (push (color-graph g 4
-                                       :color (lambda (v)
-                                                (cond
-                                                  ((equalp v vertex)
-                                                    1)
-                                                  ((and (> (color g v) 1)
-                                                        (not (neighborp g vertex v)))
-                                                    0)
-                                                  (t
-                                                    (color g v)))))
-                    graphs)
-              (setf (color g vertex) 3)))
-          g)))
-      (when graphs
-       (go repeat))
-      (return results)))
+(defun bron-kerbosch-1-queue (graph)
+  (do* ((graphs (list (color-graph graph 4 :color 2)))
+        (g (pop graphs) (pop graphs))
+        results)
+       ((null g) results)
+    (if (notany (lambda (vertex)
+                  (> (color g vertex) 1))
+                (vertices g))
+      (push g results)
+      (sequence:dosequence (vertex (vertices g))
+        (when (= (color g vertex) 2)
+          (push (color-graph g 4
+                             :color (lambda (v &aux (color (color g v)))
+                                       (cond
+                                        ((equalp v vertex)
+                                          1)
+                                        ((and (> color 1)
+                                              (not (neighborp g vertex v)))
+                                          0)
+                                        (t
+                                          color))))
+                graphs)
+          (setf (color g vertex) 3))))))
 
 
 (defun pivot-gpx (graph)
-  (let (u d)
-    (map-vertices nil
-                  (lambda (v)
-                    (when (> (color graph v) 1)
-                      (let ((deg (degree graph v)))
-                        (when (or (not d) (< d deg))
-                          (setf u v
-                                d deg)))))
-                  graph)
-    u))
+  (do! (u d
+        (v (vertices graph) :sequence))
+       (nil u)
+    (when (> (color graph v) 1)
+      (let ((deg (degree graph v)))
+        (when (or (not d) (< d deg))
+          (setf u v
+                d deg))))))
 
 
 (defun bron-kerbosch-2-queue (graph)
-  (prog ((graphs (list (color-graph graph 4 :color 2)))
-         g results
-         (steps 0))
-   repeat
-    (when (zerop (setf steps (mod (1+ steps) 100)))
-      (format t "~A ~A~%" (length results) (length graphs))
-      (finish-output))
-    (setf g (pop graphs))
-    (cond
-      ((notany-vertices (lambda (vertex)
-                          (> (color g vertex) 1))
-                        g)
-        (push g results))
-      (t
-        (let ((u (pivot-gpx g)))
-          (map-vertices
-            nil
-            (lambda (vertex)
-              (when (and (= (color g vertex) 2)
-                         (not (neighborp g vertex u)))
-                (push (color-graph g 4
-                                         :color (lambda (v)
-                                                  (cond
-                                                    ((equalp v vertex)
-                                                      1)
-                                                    ((and (> (color g v) 1)
-                                                          (not (neighborp g vertex v)))
-                                                      0)
-                                                    (t
-                                                      (color g v)))))
-                      graphs)
-                (setf (color g vertex) 3)))
-            g))))
-      (when graphs
-       (go repeat))
-      (return results)))||#
+  (do* ((graphs (list (color-graph graph 4 :color 2)))
+        (g (pop graphs) (pop graphs))
+        results)
+       ((null g) results)
+    (if (notany (lambda (vertex)
+                  (> (color g vertex) 1))
+                (vertices g))
+        (push g results)
+        (do! ((u (pivot-gpx g))
+              (vertex (vertices g) :sequence))
+             ()
+          (when (and (= (color g vertex) 2)
+                     (not (neighborp g vertex u)))
+            (push (color-graph g 4
+                               :color (lambda (v)
+                                        (cond
+                                          ((equalp v vertex)
+                                            1)
+                                          ((and (> (color g v) 1)
+                                                (not (neighborp g vertex v)))
+                                            0)
+                                          (t
+                                            (color g v)))))
+                  graphs)
+            (setf (color g vertex) 3))))))
+
 
 (defun bron-kerbosch (graph)
   (bron-kerbosch-1 (color-graph graph 4 :color 2)))

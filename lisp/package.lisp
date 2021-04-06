@@ -1,5 +1,6 @@
 (defpackage #:liebler
   (:use :common-lisp)
+  (:import-from :do-bang #:do!)
   (:export
     #:advance
     #:all-vertices
