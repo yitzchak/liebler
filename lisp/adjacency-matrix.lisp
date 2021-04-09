@@ -92,8 +92,9 @@
 
 
 (defun adjacency-matrix-edges-find-next-edge (graph iterator-state)
-  (prog ((vertex1 (car iterator-state))
-         (vertex2 (cdr iterator-state)))
+  (prog ((index (first iterator-state))
+         (vertex1 (second iterator-state))
+         (vertex2 (third iterator-state)))
    next
     (when (< vertex1 (order graph))
       (incf vertex2)
@@ -106,7 +107,7 @@
         (go next))
       (when (zerop (aref (matrix graph) vertex1 vertex2))
         (go next)))
-    (return (cons vertex1 vertex2))))
+    (return (list (1+ index) vertex1 vertex2))))
 
 
 (defmethod sequence:length ((instance adjacency-matrix-edges))
@@ -122,8 +123,9 @@
 
 
 (defmethod sequence:elt ((instance adjacency-matrix-edges) index)
-  (declare (ignore instance))
-  index)
+  (do ((iterator (adjacency-matrix-edges-find-next-edge (parent instance) (list -1 0 -1))
+                 (adjacency-matrix-edges-find-next-edge (parent instance) iterator)))
+      ((= (car iterator) index) (cdr iterator))))
 
 
 (defun adjacency-matrix-edges-step (sequence iterator from-end)
@@ -133,12 +135,12 @@
 
 (defun adjacency-matrix-edges-endp (sequence iterator limit from-end)
   (declare (ignore sequence from-end))
-  (equalp limit iterator))
+  (equalp limit (cdr iterator)))
 
 
 (defun adjacency-matrix-edges-element (sequence iterator)
   (declare (ignore sequence))
-  iterator)
+  (cdr iterator))
 
 
 (defun adjacency-matrix-edges-setf-element (new-value sequence iterator)
@@ -148,17 +150,17 @@
 
 (defun adjacency-matrix-edges-index (sequence iterator)
   (declare (ignore sequence))
-  iterator)
+  (car iterator))
 
 
 (defun adjacency-matrix-edges-copy (sequence iterator)
   (declare (ignore sequence))
-  (cons (car iterator) (cdr iterator)))
+  (copy-list iterator))
 
 
 (defmethod sequence:make-sequence-iterator ((sequence adjacency-matrix-edges) &key from-end start end)
-  (values (adjacency-matrix-edges-find-next-edge (parent sequence) (cons 0 -1))
-          (cons (order (parent sequence)) -1)
+  (values (adjacency-matrix-edges-find-next-edge (parent sequence) (list -1 0 -1))
+          (list (order (parent sequence)) -1)
           from-end
           #'adjacency-matrix-edges-step
           #'adjacency-matrix-edges-endp
@@ -177,8 +179,10 @@
      :initarg :vertex)))
 
 
-(defun adjacency-matrix-neighbors-find-next-edge (instance vertex2)
-  (prog ((vertex (vertex instance))
+(defun adjacency-matrix-neighbors-find-next-edge (instance iterator)
+  (prog ((index (first iterator))
+         (vertex2 (second iterator))
+         (vertex (vertex instance))
          (order (order (parent instance)))
          (matrix (matrix (parent instance))))
    next
@@ -187,7 +191,7 @@
       (when (and (< vertex2 order)
                  (zerop (aref matrix vertex vertex2)))
         (go next)))
-    (return vertex2)))
+    (return (list (1+ index) vertex2))))
 
 
 (defmethod sequence:length ((instance adjacency-matrix-neighbors))
@@ -198,8 +202,9 @@
 
 
 (defmethod sequence:elt ((instance adjacency-matrix-neighbors) index)
-  (declare (ignore instance))
-  index)
+  (do ((iterator (adjacency-matrix-neighbors-find-next-edge instance (list -1 -1))
+                 (adjacency-matrix-neighbors-find-next-edge instance iterator)))
+      ((= (car iterator) index) (second iterator))))
 
 
 (defun adjacency-matrix-neighbors-step (sequence iterator from-end)
@@ -209,12 +214,12 @@
 
 (defun adjacency-matrix-neighbors-endp (sequence iterator limit from-end)
   (declare (ignore sequence from-end))
-  (= limit iterator))
+  (= limit (second iterator)))
 
 
 (defun adjacency-matrix-neighbors-element (sequence iterator)
   (declare (ignore sequence))
-  iterator)
+  (second iterator))
 
 
 (defun adjacency-matrix-neighbors-setf-element (new-value sequence iterator)
@@ -224,16 +229,16 @@
 
 (defun adjacency-matrix-neighbors-index (sequence iterator)
   (declare (ignore sequence))
-  iterator)
+  (first iterator))
 
 
 (defun adjacency-matrix-neighbors-copy (sequence iterator)
   (declare (ignore sequence))
-  iterator)
+  (copy-list iterator))
 
 
 (defmethod sequence:make-sequence-iterator ((sequence adjacency-matrix-neighbors) &key from-end start end)
-  (values (adjacency-matrix-neighbors-find-next-edge sequence -1)
+  (values (adjacency-matrix-neighbors-find-next-edge sequence (list -1 -1))
           (order (parent sequence))
           from-end
           #'adjacency-matrix-neighbors-step

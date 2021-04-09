@@ -1,157 +1,138 @@
 (in-package #:liebler)
 
 
-; iterators don't need to be derived from this class. This is just for convience.
-(defclass iterator ()
-  ((graph
-     :reader graph
-     :initarg :graph)))
+(defclass sequence-iterator ()
+  ((sequence
+     :accessor sequence-iterator-sequence
+     :initarg :sequence)
+   (limit
+     :accessor sequence-iterator-limit
+     :initarg :limit)
+   (from-end
+     :accessor sequence-iterator-from-end
+     :initarg :from-end)
+   (step
+     :accessor sequence-iterator-step
+     :initarg :step)
+   (endp
+     :accessor sequence-iterator-endp
+     :initarg :endp)
+   (element
+     :accessor sequence-iterator-element
+     :initarg :element)
+   (setf-element
+     :accessor sequence-iterator-setf-element
+     :initarg :setf-element)
+   (index
+     :accessor sequence-iterator-index
+     :initarg :index)
+   (copy
+     :accessor sequence-iterator-copy
+     :initarg :copy)
+   (initial
+     :accessor sequence-iterator-initial)))
 
 
-(defgeneric edges (graph))
+(defun make-sequence-iterator (sequence &rest initargs &key &allow-other-keys)
+  (let ((instance (make-instance 'sequence-iterator :sequence sequence)))
+    (with-slots (initial limit from-end step endp element setf-element index copy)
+                instance
+      (multiple-value-setq (initial limit from-end step endp element setf-element index copy)
+                           (apply #'sequence:make-sequence-iterator sequence initargs)))
+    instance))
 
 
-(defgeneric neighbors (graph vertex))
+(defun make-sequences-iterator (sequences &key from-end start end)
+  (let ((subs (mapcar #'make-sequence-iterator sequences)))
+    (values (cons 0
+                  (mapcar (lambda (sub)
+                            (funcall (sequence-iterator-copy sub)
+                                     (sequence-iterator-sequence sub)
+                                     (sequence-iterator-initial sub)))
+                          subs))
+            ; limit
+            nil
+            ; from-end
+            from-end
+            ; step
+            (lambda (sequence iterator from-end)
+              (declare (ignore sequence from-end))
+              (let* (copy-rest
+                     (new-iterator (cons (1+ (first iterator))
+                                         (mapcar (lambda (sub sub-iterator)
+                                                   (let ((new-sub-iterator (if copy-rest
+                                                                             (funcall (sequence-iterator-copy sub)
+                                                                                      (sequence-iterator-sequence sub)
+                                                                                      sub-iterator)
+                                                                             (funcall (sequence-iterator-step sub)
+                                                                                      (sequence-iterator-sequence sub)
+                                                                                      sub-iterator
+                                                                                     (sequence-iterator-from-end sub)))))
+                                                     (unless (funcall (sequence-iterator-endp sub)
+                                                                      (sequence-iterator-sequence sub)
+                                                                      new-sub-iterator
+                                                                      (sequence-iterator-limit sub)
+                                                                      (sequence-iterator-from-end sub))
+                                                       (setf copy-rest t))
+                                                     new-sub-iterator))
+                                             subs (cdr iterator)))))
+                (if copy-rest
+                  (cons (first new-iterator)
+                        (mapcar (lambda (sub sub-iterator)
+                                  (if (funcall (sequence-iterator-endp sub)
+                                             (sequence-iterator-sequence sub)
+                                             sub-iterator
+                                             (sequence-iterator-limit sub)
+                                             (sequence-iterator-from-end sub))
+                                  (funcall (sequence-iterator-copy sub)
+                                           (sequence-iterator-sequence sub)
+                                           (sequence-iterator-initial sub))
+                                  sub-iterator))
+                          subs (cdr new-iterator)))
+                  new-iterator)))
+            ; endp
+            (lambda (sequence iterator limit from-end)
+              (declare (ignore sequence limit from-end))
+              (every (lambda (sub sub-iterator)
+                       (funcall (sequence-iterator-endp sub)
+                                (sequence-iterator-sequence sub)
+                                sub-iterator
+                                (sequence-iterator-limit sub)
+                                (sequence-iterator-from-end sub)))
+                     subs (cdr iterator)))
+            ; element
+            (lambda (sequence iterator)
+              (declare (ignore sequence))
+              (mapcar (lambda (sub sub-iterator)
+                        (funcall (sequence-iterator-element sub)
+                                 (sequence-iterator-sequence sub)
+                                 sub-iterator))
+                      subs (cdr iterator)))
+            ; setf-element
+            (lambda (new-value sequence iterator)
+              (declare (ignore sequence))
+              (mapcar (lambda (sub sub-new-value sub-iterator)
+                        (funcall (sequence-iterator-setf-element sub)
+                                 sub-new-value
+                                 (sequence-iterator-sequence sub)
+                                 sub-iterator))
+                      subs new-value (cdr iterator)))
+            ; index
+            (lambda (sequence iterator)
+              (declare (ignore sequence))
+              (first iterator))
+            ; copy
+            (lambda (sequence iterator)
+              (declare (ignore sequence))
+              (cons (first iterator)
+                    (mapcar (lambda (sub sub-iterator)
+                              (funcall (sequence-iterator-copy sub)
+                                       (sequence-iterator-sequence sub)
+                                       sub-iterator))
+                            subs (cdr iterator)))))))
 
 
-(defgeneric vertices (graph))
 
 
-(defgeneric advance (iterator))
 
 
-(defgeneric validp (iterator))
-
-
-(defgeneric current (iterator))
-
-
-(defgeneric reset (iterator))
-
-
-(defclass child-iterator ()
-  ((parent-iterator
-     :reader parent-iterator
-     :initarg :parent-iterator)))
-
-
-(defmethod advance ((iterator child-iterator))
-  (advance (parent-iterator iterator)))
-
-
-(defmethod validp ((iterator child-iterator))
-  (validp (parent-iterator iterator)))
-
-
-(defmethod current ((iterator child-iterator))
-  (current (parent-iterator iterator)))
-
-
-(defmethod reset ((iterator child-iterator))
-  (reset (parent-iterator iterator)))
-
-
-(defclass neighbor-iterator (iterator child-iterator)
-  ((vertex
-     :reader vertex
-     :initarg :vertex)))
-
-
-(defmethod initialize-instance :after ((iterator neighbor-iterator) &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (with-slots (parent-iterator graph vertex)
-              iterator
-    (when (and (validp parent-iterator)
-               (not (neighborp graph vertex (current parent-iterator))))
-      (advance parent-iterator))))
-
-
-(defmethod neighbors (graph vertex)
-  (make-instance 'neighbor-iterator
-                 :graph graph
-                 :parent-iterator (vertices graph)
-                 :vertex vertex))
-
-
-(defmethod advance ((iterator neighbor-iterator))
-  (with-slots (parent-iterator graph vertex)
-              iterator
-    (tagbody
-     repeat
-      (advance parent-iterator)
-      (when (and (validp parent-iterator)
-                 (not (neighborp graph vertex (current parent-iterator))))
-        (go repeat)))
-    iterator))
-
-
-(defmethod reset ((iterator neighbor-iterator))
-  (with-slots (parent-iterator graph vertex)
-              iterator
-    (reset parent-iterator)
-    (when (and (validp parent-iterator)
-               (not (neighborp graph vertex (current parent-iterator))))
-      (advance parent-iterator))))
-
-
-(defclass edge-iterator (iterator)
-  ((vertex-iterator
-     :reader vertex-iterator
-     :initarg :vertex-iterator)
-   (neighbor-iterator
-     :accessor neighbor-iterator
-     :initform nil)))
-
-
-(defmethod initialize-instance :after ((iterator edge-iterator) &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (reset iterator))
-
-
-(defmethod edges (graph)
-  (make-instance 'edge-iterator
-                 :graph graph
-                 :vertex-iterator (vertices graph)))
-
-
-(defmethod validp ((iterator edge-iterator))
-  (and (validp (vertex-iterator iterator))
-       (neighbor-iterator iterator)
-       (validp (neighbor-iterator iterator))))
-
-
-(defmethod current ((iterator edge-iterator))
-  (values (current (vertex-iterator iterator))
-          (when (neighbor-iterator iterator)
-            (current (neighbor-iterator iterator)))))
-
-
-(defmethod advance ((iterator edge-iterator))
-  (with-slots (vertex-iterator graph neighbor-iterator)
-              iterator
-    (when neighbor-iterator
-      (advance neighbor-iterator))
-    (unless (and neighbor-iterator
-                 (validp neighbor-iterator))
-      (tagbody
-       repeat
-        (advance vertex-iterator)
-        (when (validp vertex-iterator)
-          (setf neighbor-iterator (neighbors graph (current vertex-iterator)))
-          (unless (validp neighbor-iterator)
-            (go repeat))))))
-  iterator)
-
-
-(defmethod reset ((iterator edge-iterator))
-  (with-slots (vertex-iterator neighbor-iterator graph)
-              iterator
-    (reset vertex-iterator)
-    (cond
-      ((validp vertex-iterator)
-        (setf neighbor-iterator (neighbors graph (current vertex-iterator)))
-        (unless (validp neighbor-iterator)
-          (advance iterator)))
-      (t
-        (setf neighbor-iterator nil))))
-  iterator)

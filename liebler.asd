@@ -7,10 +7,10 @@
                 :components
                 ((:file "package")
                  (:file "graph")
-                 ;(:file "iterator")
+                 (:file "iterator")
                  ;(:file "do")
                  ;(:file "functional")
-                 ;(:file "default")
+                 (:file "default")
                  (:file "child-graph")
                  (:file "adjacency-matrix")
                  ;(:file "colored-graph")
